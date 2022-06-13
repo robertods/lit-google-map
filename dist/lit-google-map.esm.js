@@ -473,6 +473,70 @@ LitGoogleMapPolygon = __decorate([
     customElement('lit-google-map-polygon')
 ], LitGoogleMapPolygon);
 
+let LitGoogleMapPolyline = class LitGoogleMapPolyline extends LitElement {
+    constructor() {
+        super(...arguments);
+        this.path = [];
+        this.fillColor = '#FF0000';
+        this.fillOpacity = 0.35;
+        this.strokeColor = '#FF0000';
+        this.strokeOpacity = 0.8;
+        this.strokeWeight = 2;
+        this.map = null;
+        this.polyline = null;
+    }
+    attachToMap(map) {
+        this.map = map;
+        this.mapChanged();
+    }
+    mapChanged() {
+        if (this.polyline) {
+            this.polyline.setMap(null);
+            google.maps.event.clearInstanceListeners(this.polyline);
+        }
+        if (this.map && this.map instanceof google.maps.Map) {
+            this.mapReady();
+        }
+    }
+    mapReady() {
+        this.polyline = new google.maps.Polyline({
+            map: this.map,
+            strokeColor: this.strokeColor,
+            strokeOpacity: this.strokeOpacity,
+            strokeWeight: this.strokeWeight,
+            geodesic: true,
+            path: this.path
+        });
+    }
+};
+__decorate([
+    property({ type: Array }),
+    __metadata("design:type", Array)
+], LitGoogleMapPolyline.prototype, "path", void 0);
+__decorate([
+    property({ type: String, attribute: 'fill-color' }),
+    __metadata("design:type", String)
+], LitGoogleMapPolyline.prototype, "fillColor", void 0);
+__decorate([
+    property({ type: Number, attribute: 'fill-opacity' }),
+    __metadata("design:type", Number)
+], LitGoogleMapPolyline.prototype, "fillOpacity", void 0);
+__decorate([
+    property({ type: String, attribute: 'stroke-color' }),
+    __metadata("design:type", String)
+], LitGoogleMapPolyline.prototype, "strokeColor", void 0);
+__decorate([
+    property({ type: Number, attribute: 'stroke-opacity' }),
+    __metadata("design:type", Number)
+], LitGoogleMapPolyline.prototype, "strokeOpacity", void 0);
+__decorate([
+    property({ type: Number, attribute: 'stroke-weight' }),
+    __metadata("design:type", Number)
+], LitGoogleMapPolyline.prototype, "strokeWeight", void 0);
+LitGoogleMapPolyline = __decorate([
+    customElement('lit-google-map-polyline')
+], LitGoogleMapPolyline);
+
 let LitGoogleMap = class LitGoogleMap extends LitElement {
     constructor() {
         super(...arguments);
@@ -606,6 +670,16 @@ LitGoogleMap.styles = css `
         #map {
             width: 100%;
             height: 100%;
+        }
+        .gm-ui-hover-effect>span {
+            background-color: #000;
+        }
+        .gmnoprint[role="menubar"] ul[role="menu"] {
+            border-top-left-radius: 2px!important;
+            border-top-right-radius: 2px!important; 
+            border-bottom-left-radius: 0px!important;
+            border-bottom-right-radius: 0px!important;
+            top: -37px!important;
         }
     `;
 __decorate([
@@ -814,4 +888,4 @@ LitSelector = __decorate([
     customElement('lit-selector')
 ], LitSelector);
 
-export { LitGoogleMap, LitGoogleMapCircle, LitGoogleMapMarker, LitGoogleMapPolygon, LitGoogleMapsApi, LitSelector };
+export { LitGoogleMap, LitGoogleMapCircle, LitGoogleMapMarker, LitGoogleMapPolygon, LitGoogleMapPolyline, LitGoogleMapsApi, LitSelector };

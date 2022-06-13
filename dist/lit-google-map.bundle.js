@@ -544,6 +544,70 @@
         n$1('lit-google-map-polygon')
     ], exports.LitGoogleMapPolygon);
 
+    exports.LitGoogleMapPolyline = class LitGoogleMapPolyline extends s {
+        constructor() {
+            super(...arguments);
+            this.path = [];
+            this.fillColor = '#FF0000';
+            this.fillOpacity = 0.35;
+            this.strokeColor = '#FF0000';
+            this.strokeOpacity = 0.8;
+            this.strokeWeight = 2;
+            this.map = null;
+            this.polyline = null;
+        }
+        attachToMap(map) {
+            this.map = map;
+            this.mapChanged();
+        }
+        mapChanged() {
+            if (this.polyline) {
+                this.polyline.setMap(null);
+                google.maps.event.clearInstanceListeners(this.polyline);
+            }
+            if (this.map && this.map instanceof google.maps.Map) {
+                this.mapReady();
+            }
+        }
+        mapReady() {
+            this.polyline = new google.maps.Polyline({
+                map: this.map,
+                strokeColor: this.strokeColor,
+                strokeOpacity: this.strokeOpacity,
+                strokeWeight: this.strokeWeight,
+                geodesic: true,
+                path: this.path
+            });
+        }
+    };
+    __decorate([
+        e({ type: Array }),
+        __metadata("design:type", Array)
+    ], exports.LitGoogleMapPolyline.prototype, "path", void 0);
+    __decorate([
+        e({ type: String, attribute: 'fill-color' }),
+        __metadata("design:type", String)
+    ], exports.LitGoogleMapPolyline.prototype, "fillColor", void 0);
+    __decorate([
+        e({ type: Number, attribute: 'fill-opacity' }),
+        __metadata("design:type", Number)
+    ], exports.LitGoogleMapPolyline.prototype, "fillOpacity", void 0);
+    __decorate([
+        e({ type: String, attribute: 'stroke-color' }),
+        __metadata("design:type", String)
+    ], exports.LitGoogleMapPolyline.prototype, "strokeColor", void 0);
+    __decorate([
+        e({ type: Number, attribute: 'stroke-opacity' }),
+        __metadata("design:type", Number)
+    ], exports.LitGoogleMapPolyline.prototype, "strokeOpacity", void 0);
+    __decorate([
+        e({ type: Number, attribute: 'stroke-weight' }),
+        __metadata("design:type", Number)
+    ], exports.LitGoogleMapPolyline.prototype, "strokeWeight", void 0);
+    exports.LitGoogleMapPolyline = __decorate([
+        n$1('lit-google-map-polyline')
+    ], exports.LitGoogleMapPolyline);
+
     exports.LitGoogleMap = class LitGoogleMap extends s {
         constructor() {
             super(...arguments);
@@ -677,6 +741,16 @@
         #map {
             width: 100%;
             height: 100%;
+        }
+        .gm-ui-hover-effect>span {
+            background-color: #000;
+        }
+        .gmnoprint[role="menubar"] ul[role="menu"] {
+            border-top-left-radius: 2px!important;
+            border-top-right-radius: 2px!important; 
+            border-bottom-left-radius: 0px!important;
+            border-bottom-right-radius: 0px!important;
+            top: -37px!important;
         }
     `;
     __decorate([

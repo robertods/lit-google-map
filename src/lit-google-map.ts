@@ -185,6 +185,16 @@ export class LitGoogleMap extends LitElement {
             width: 100%;
             height: 100%;
         }
+        .gm-ui-hover-effect>span {
+            background-color: #000;
+        }
+        .gmnoprint[role="menubar"] ul[role="menu"] {
+            border-top-left-radius: 2px!important;
+            border-top-right-radius: 2px!important; 
+            border-bottom-left-radius: 0px!important;
+            border-bottom-right-radius: 0px!important;
+            top: -37px!important;
+        }
     `;
 
     render() {
