@@ -7,6 +7,9 @@ export class LitGoogleMapPolyline extends LitElement implements Shape {
     @property({type : Array})
     path: any[] = [ ];
 
+    @property({type : String, attribute: 'polyline-id'})
+    polylineId: string = '';
+
     @property({type : String, attribute: 'fill-color'})
     fillColor: string = '#FF0000';
 
@@ -22,8 +25,21 @@ export class LitGoogleMapPolyline extends LitElement implements Shape {
     @property({type : Number, attribute: 'stroke-weight'})
     strokeWeight: number = 2;
 
+    @property({type : Boolean, attribute: 'data-event'})
+    dataEvent: boolean = false;
+
     map : google.maps.Map = null;
     polyline : google.maps.Polyline = null;
+
+    attributeChangedCallback(name : string, oldval : any, newval : any) {
+        super.attributeChangedCallback(name, oldval, newval);
+        switch (name) {
+            case 'stroke-weight': {
+                this.mapChanged();
+                break;
+            }
+        }
+    }
 
     attachToMap(map: google.maps.Map): void {
         this.map = map;
@@ -51,5 +67,20 @@ export class LitGoogleMapPolyline extends LitElement implements Shape {
             geodesic: true,
             path: this.path
           });
+        
+        this.dataEvent && google.maps.event.addListener(this.polyline, 'click', e => {
+            this.dispatchEvent(new CustomEvent('polyline.click', {
+                detail: { event: e, data: this.polylineId },
+                bubbles: true,
+                composed: true
+            }));
+        });  
+    }
+    center(){
+        const bounds = new google.maps.LatLngBounds();
+        this.polyline.getPath().forEach(item => {
+            bounds.extend(new google.maps.LatLng(item.lat(), item.lng()));
+        });
+        this.map.fitBounds(bounds);
     }
 }

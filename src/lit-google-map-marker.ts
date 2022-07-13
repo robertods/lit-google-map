@@ -21,6 +21,9 @@ export class LitGoogleMapMarker extends LitElement {
     @property({type: String, reflect: true})
     icon : string | null = null;
 
+    @property({type : String, attribute: 'marker-id'})
+    markerId: string = '';
+
     map : google.maps.Map = null;
     marker : google.maps.Marker = null;
     info : google.maps.InfoWindow;
@@ -60,10 +63,12 @@ export class LitGoogleMapMarker extends LitElement {
 
         if (this.open) {
             this.info.open(this.map, this.marker);
-            this.dispatchEvent(new CustomEvent('google-map-marker-open', { bubbles:true }));
+            this.dispatchEvent(new CustomEvent('google-map-marker-open', { 
+                detail: { data: this.markerId },
+                bubbles:true, composed:true }));
         } else {
             this.info.close();
-            this.dispatchEvent(new CustomEvent('google-map-marker-close', { bubbles:true }));
+            this.dispatchEvent(new CustomEvent('google-map-marker-close', { bubbles:true, composed:true }));
         }
     }
 
@@ -91,7 +96,12 @@ export class LitGoogleMapMarker extends LitElement {
     mapReady() {
         this.marker = new google.maps.Marker({
             map: this.map,
-            icon: this.icon,
+            icon: {
+              url: this.icon,
+              size: new google.maps.Size(45, 45),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(22, 22),
+            },
             position: {
               lat: this.latitude,
               lng: this.longitude

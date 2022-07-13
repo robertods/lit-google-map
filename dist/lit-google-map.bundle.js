@@ -271,6 +271,7 @@
             this.zIndex = 0;
             this.open = false;
             this.icon = null;
+            this.markerId = '';
             this.map = null;
             this.marker = null;
         }
@@ -305,11 +306,14 @@
                 return;
             if (this.open) {
                 this.info.open(this.map, this.marker);
-                this.dispatchEvent(new CustomEvent('google-map-marker-open', { bubbles: true }));
+                this.dispatchEvent(new CustomEvent('google-map-marker-open', {
+                    detail: { data: this.markerId },
+                    bubbles: true, composed: true
+                }));
             }
             else {
                 this.info.close();
-                this.dispatchEvent(new CustomEvent('google-map-marker-close', { bubbles: true }));
+                this.dispatchEvent(new CustomEvent('google-map-marker-close', { bubbles: true, composed: true }));
             }
         }
         updatePosition() {
@@ -332,7 +336,12 @@
         mapReady() {
             this.marker = new google.maps.Marker({
                 map: this.map,
-                icon: this.icon,
+                icon: {
+                    url: this.icon,
+                    size: new google.maps.Size(45, 45),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(22, 22),
+                },
                 position: {
                     lat: this.latitude,
                     lng: this.longitude
@@ -396,6 +405,10 @@
         e({ type: String, reflect: true }),
         __metadata("design:type", String)
     ], exports.LitGoogleMapMarker.prototype, "icon", void 0);
+    __decorate([
+        e({ type: String, attribute: 'marker-id' }),
+        __metadata("design:type", String)
+    ], exports.LitGoogleMapMarker.prototype, "markerId", void 0);
     exports.LitGoogleMapMarker = __decorate([
         n$1('lit-google-map-marker')
     ], exports.LitGoogleMapMarker);
@@ -548,13 +561,24 @@
         constructor() {
             super(...arguments);
             this.path = [];
+            this.polylineId = '';
             this.fillColor = '#FF0000';
             this.fillOpacity = 0.35;
             this.strokeColor = '#FF0000';
             this.strokeOpacity = 0.8;
             this.strokeWeight = 2;
+            this.dataEvent = false;
             this.map = null;
             this.polyline = null;
+        }
+        attributeChangedCallback(name, oldval, newval) {
+            super.attributeChangedCallback(name, oldval, newval);
+            switch (name) {
+                case 'stroke-weight': {
+                    this.mapChanged();
+                    break;
+                }
+            }
         }
         attachToMap(map) {
             this.map = map;
@@ -578,12 +602,30 @@
                 geodesic: true,
                 path: this.path
             });
+            this.dataEvent && google.maps.event.addListener(this.polyline, 'click', e => {
+                this.dispatchEvent(new CustomEvent('polyline.click', {
+                    detail: { event: e, data: this.polylineId },
+                    bubbles: true,
+                    composed: true
+                }));
+            });
+        }
+        center() {
+            const bounds = new google.maps.LatLngBounds();
+            this.polyline.getPath().forEach(item => {
+                bounds.extend(new google.maps.LatLng(item.lat(), item.lng()));
+            });
+            this.map.fitBounds(bounds);
         }
     };
     __decorate([
         e({ type: Array }),
         __metadata("design:type", Array)
     ], exports.LitGoogleMapPolyline.prototype, "path", void 0);
+    __decorate([
+        e({ type: String, attribute: 'polyline-id' }),
+        __metadata("design:type", String)
+    ], exports.LitGoogleMapPolyline.prototype, "polylineId", void 0);
     __decorate([
         e({ type: String, attribute: 'fill-color' }),
         __metadata("design:type", String)
@@ -604,6 +646,10 @@
         e({ type: Number, attribute: 'stroke-weight' }),
         __metadata("design:type", Number)
     ], exports.LitGoogleMapPolyline.prototype, "strokeWeight", void 0);
+    __decorate([
+        e({ type: Boolean, attribute: 'data-event' }),
+        __metadata("design:type", Boolean)
+    ], exports.LitGoogleMapPolyline.prototype, "dataEvent", void 0);
     exports.LitGoogleMapPolyline = __decorate([
         n$1('lit-google-map-polyline')
     ], exports.LitGoogleMapPolyline);
@@ -664,6 +710,12 @@
             this.addEventListener("selector-items-changed", event => { this.updateMarkers(); });
             this.marketObserverSet = true;
         }
+        observeShapes() {
+            if (this.shapeObserverSet)
+                return;
+            this.addEventListener("selector-items-changed", event => { this.updateShapes(); });
+            this.shapeObserverSet = true;
+        }
         updateMarkers() {
             this.observeMarkers();
             var markersSelector = this.shadowRoot.getElementById("markers-selector");
@@ -684,6 +736,7 @@
             }
         }
         updateShapes() {
+            this.observeShapes();
             var shapesSelector = this.shadowRoot.getElementById("shapes-selector");
             if (!shapesSelector)
                 return;
@@ -699,6 +752,20 @@
                     latLngBounds.extend(new google.maps.LatLng(marker.latitude, marker.longitude));
                 }
                 if (this.markers.length > 1) {
+                    this.map.fitBounds(latLngBounds);
+                }
+                this.map.setCenter(latLngBounds.getCenter());
+            }
+        }
+        fitToPolylinesChanged() {
+            if (this.map && this.shapes.length > 0) {
+                var latLngBounds = new google.maps.LatLngBounds();
+                for (var shape of this.shapes) {
+                    shape.path.forEach(p => {
+                        latLngBounds.extend(new google.maps.LatLng(p.lat, p.lng));
+                    });
+                }
+                if (this.shapes.length > 1) {
                     this.map.fitBounds(latLngBounds);
                 }
                 this.map.setCenter(latLngBounds.getCenter());

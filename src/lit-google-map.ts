@@ -4,6 +4,7 @@ import {LitGoogleMapsApi} from './lit-google-maps-api';
 import {LitGoogleMapMarker} from './lit-google-map-marker';
 import {LitSelector} from './lit-selector';
 import {Shape} from './shape';
+import { LitGoogleMapPolyline } from './lit-google-map-polyline';
 
 @customElement('lit-google-map')
 export class LitGoogleMap extends LitElement {
@@ -63,6 +64,7 @@ export class LitGoogleMap extends LitElement {
     shapes : Array<Node>;
 
     marketObserverSet : boolean;
+    shapeObserverSet : boolean;
 
     initGMap() {
         if (this.map != null) {
@@ -118,6 +120,14 @@ export class LitGoogleMap extends LitElement {
         this.marketObserverSet = true;
     }
 
+    observeShapes() {
+        if (this.shapeObserverSet)
+            return;
+
+        this.addEventListener("selector-items-changed", event => { this.updateShapes() });
+        this.shapeObserverSet = true;
+    }
+
     updateMarkers() {
         this.observeMarkers();
 
@@ -147,6 +157,7 @@ export class LitGoogleMap extends LitElement {
     }
 
     updateShapes() {
+        this.observeShapes();
         var shapesSelector = this.shadowRoot.getElementById("shapes-selector") as LitSelector;
         if (!shapesSelector)
             return;
@@ -167,6 +178,24 @@ export class LitGoogleMap extends LitElement {
 
             // For one marker, don't alter zoom, just center it.
             if (this.markers.length > 1) {
+                this.map.fitBounds(latLngBounds);
+            }
+
+            this.map.setCenter(latLngBounds.getCenter());
+        }
+    }
+
+    fitToPolylinesChanged() {
+        if (this.map && this.shapes.length > 0) {
+            var latLngBounds = new google.maps.LatLngBounds();
+            for (var shape of this.shapes) {
+                (shape as LitGoogleMapPolyline).path.forEach(p => {
+                    latLngBounds.extend(new google.maps.LatLng(p.lat, p.lng));
+                });
+            }
+
+            // For one marker, don't alter zoom, just center it.
+            if (this.shapes.length > 1) {
                 this.map.fitBounds(latLngBounds);
             }
 
